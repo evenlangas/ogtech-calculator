@@ -20,7 +20,7 @@ def detect_series(name:str) -> str:
         return "VSA"
     return "Other"
 
-st.title("O₂ TCO-kalkulator (uten Excel)")
+st.title("O₂ TCO-kalkulator")
 
 with st.sidebar:
     st.header("Data-kilde")
