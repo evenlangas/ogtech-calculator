@@ -49,8 +49,8 @@ with st.sidebar:
     genset_capex = st.number_input("Diesel genset CAPEX (NOK) – valgfritt", min_value=0.0, value=0.0, step=10000.0)
 
     st.header("Service-satser")
-    psa_service = st.number_input("PSA service % av CAPEX", min_value=0.0, value=0.0065, step=0.0005, format="%.4f")
-    vsa_service = st.number_input("VSA service % av CAPEX", min_value=0.0, value=0.0150, step=0.0005, format="%.4f")
+    psa_service = st.number_input("PSA service % av CAPEX", min_value=0.0, value=0.06, step=0.005, format="%.4f")
+    vsa_service = st.number_input("VSA service % av CAPEX", min_value=0.0, value=0.12, step=0.005, format="%.4f")
 
 st.subheader("Behov")
 
