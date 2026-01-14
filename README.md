@@ -1,23 +1,29 @@
+# O2 TCO – OGP vs OGP+
 
-# O₂ TCO-kalkulator (Streamlit)
+Dette er en enkel Streamlit-app for å sammenligne total eierkost (TCO) for to alternativer:
 
-Et enkelt webverktøy uten Excel. Kjør lokalt:
+- **OGP** (PSA): 0,90 kWh/kg O₂ (brukerforutsetning)
+- **OGP+** (VPSA/«OGV+»): 0,39 kWh/kg O₂ (brukerforutsetning)
+
+Appen er laget for oppdrettscase med typisk behov **500–1200 kg/h per lokasjon** og kan skaleres til flåte.
+
+## Kjør lokalt
 
 ```bash
-python -m venv .venv
-# (Windows) .venv\Scripts\activate
-# (Mac/Linux) source .venv/bin/activate
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run o2_tco_ogp_ogpplus_app.py
 ```
 
-- Standarddata ligger i `models.csv` (ekstrahert fra O2_line_selector_v2.xlsx).
-- Du kan også laste opp egen CSV med samme kolonner:
-  `Model, Series, Tech, Capacity_kg_per_h, SpecificEnergy_kWh_per_kg, CAPEX_NOK`
+## Hva appen gjør
 
-**Funksjoner**
+- Dimensjonerer antall moduler for å møte behovet
+- Beregner energibehov (kW), årlig energiforbruk (kWh)
+- Sammenligner OPEX for:
+  - Landstrøm (NOK/kWh)
+  - Diesel via genset (dieselpris × liter/kWh)
+- Beregner NPV (CAPEX + diskontert OPEX) over valgfri horisont
+- Estimerer payback (diesel som default) dersom OGP+ har høyere CAPEX, men lavere OPEX
 
-- Behov: *Lik per linje* (kg/h per linje × antall linjer) eller *Forskjellig per linje* (linjevise behov).
-- Kraftkilde: Landstrøm eller Diesel strøm (egen pris + opsjonelt genset‑CAPEX).
-- Service: egne satser for PSA og VSA (standard 0,65 % og 1,50 %).
-- Resultater: beste totalt, nest beste kun OxyGen, ROI vs alternativ, full tabell og CSV‑eksport.
+## Merk
+
+Dette er en beslutningsstøtte, ikke et endelig tilbudsgrunnlag. Juster CAPEX/kapsiteter og forutsetninger i sidepanelet.
