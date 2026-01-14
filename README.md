@@ -1,9 +1,9 @@
-# O2 TCO – OGP vs OGP+
+# O2 TCO – OGV vs OGV+
 
 Dette er en enkel Streamlit-app for å sammenligne total eierkost (TCO) for to alternativer:
 
-- **OGP** (PSA): 0,90 kWh/kg O₂ (brukerforutsetning)
-- **OGP+** (VPSA/«OGV+»): 0,39 kWh/kg O₂ (brukerforutsetning)
+- **OGV** (PSA): 0,90 kWh/kg O₂ (brukerforutsetning)
+- **OGV+** (VPSA): 0,39 kWh/kg O₂ (brukerforutsetning)
 
 Appen er laget for oppdrettscase med typisk behov **500–1200 kg/h per lokasjon** og kan skaleres til flåte.
 
@@ -11,7 +11,7 @@ Appen er laget for oppdrettscase med typisk behov **500–1200 kg/h per lokasjon
 
 ```bash
 pip install -r requirements.txt
-streamlit run o2_tco_ogp_ogpplus_app.py
+streamlit run app.py
 ```
 
 ## Hva appen gjør
@@ -22,7 +22,7 @@ streamlit run o2_tco_ogp_ogpplus_app.py
   - Landstrøm (NOK/kWh)
   - Diesel via genset (dieselpris × liter/kWh)
 - Beregner NPV (CAPEX + diskontert OPEX) over valgfri horisont
-- Estimerer payback (diesel som default) dersom OGP+ har høyere CAPEX, men lavere OPEX
+- Estimerer payback (diesel som default) dersom OGV+ har høyere CAPEX, men lavere OPEX
 
 ## Merk
 

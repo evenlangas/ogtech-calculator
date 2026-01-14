@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-O2 TCO Calculator – OGP vs OGP+ (flåte / oppdrett)
+O2 TCO Calculator – OGV vs OGV+ (flåte / oppdrett)
 --------------------------------------------------
 Kjør lokalt:
   pip install -r requirements.txt
-  streamlit run o2_tco_ogp_ogpplus_app.py
+  streamlit run app.py
 
 Deploy (Streamlit Community Cloud):
   - Legg denne filen + requirements.txt i et GitHub-repo
-  - Sett "Main file path" til: o2_tco_ogp_ogpplus_app.py
+  - Sett "Main file path" til: app.py
 
 NB:
 - Dette er en beslutningsstøtte, ikke en tilbuds-/garanti-beregning.
 - Tallene for spesifikk energibruk (kWh/kg O2) er lagt inn iht. brukerforutsetning:
-    OGP  = 0,90 kWh/kg
-    OGP+ = 0,39 kWh/kg
+    OGV  = 0,90 kWh/kg
+    OGV+ = 0,39 kWh/kg
 - CAPEX-verdier er forhåndsutfylt med prisgrunnlag fra vedlagte filer (kan overstyres i appen).
 """
 from __future__ import annotations
@@ -187,8 +187,8 @@ def build_cashflow_table(years: int, capex: float, annual_opex: float, discount_
 # Standarddata (kan overstyres i app)
 # -----------------------------
 DEFAULTS = {
-    "spec_kwh_per_kg_ogp": 0.90,
-    "spec_kwh_per_kg_ogpplus": 0.39,  # bruker skrev OGV+; her kalt OGP+ i UI
+    "spec_kwh_per_kg_ogv": 0.90,
+    "spec_kwh_per_kg_ogvplus": 0.39,
     "demand_min": 500,
     "demand_max": 1200,
     "demand_default": 800,
@@ -202,31 +202,31 @@ DEFAULTS = {
     "fleet_default": 1,
 }
 
-# OGP – basert på tilbud 5447162 (komplett anlegg: 6 008 475 NOK for 2×OGP150)
+# OGV – basert på tilbud 5447162 (komplett anlegg: 6 008 475 NOK for 2×OGV150)
 # Vi lager et "per modul"-grunnlag for enkel skalering.
-OGP_O2_CAPACITY_PER_MODULE = 200.0  # kg/h (antatt ~OGP150 @ 93% ~200 kg/h)
-OGP_CAPEX_GENERATOR_PER_MODULE = 2_194_350.0
-OGP_CAPEX_BOP_PER_MODULE = 809_887.5  # (Total 6 008 475 - 2×2 194 350) / 2
-OGP_CAPEX_COMPLETE_PER_MODULE = OGP_CAPEX_GENERATOR_PER_MODULE + OGP_CAPEX_BOP_PER_MODULE
+OGV_O2_CAPACITY_PER_MODULE = 200.0  # kg/h (antatt ~OGV150 @ 93% ~200 kg/h)
+OGV_CAPEX_GENERATOR_PER_MODULE = 2_194_350.0
+OGV_CAPEX_BOP_PER_MODULE = 809_887.5  # (Total 6 008 475 - 2×2 194 350) / 2
+OGV_CAPEX_COMPLETE_PER_MODULE = OGV_CAPEX_GENERATOR_PER_MODULE + OGV_CAPEX_BOP_PER_MODULE
 
-# OGP+ – basert på "Ramme under arbeid.xlsx" (Pris komplett anlegg i EUR, konvertert til NOK).
+# OGV+ – basert på "Ramme under arbeid.xlsx" (Pris komplett anlegg i EUR, konvertert til NOK).
 # I appen kan brukeren endre både EUR/NOK og priser.
-OGPPLUS_DEFAULT_EUR_NOK = 11.69
-OGPPLUS_OPTIONS_EUR = [
-    ("OGP+ 80", 105.0, 385_490.0),
-    ("OGP+ 105", 138.0, 411_250.0),
-    ("OGP+ 160", 210.0, 548_798.0),
-    ("OGP+ 270", 355.0, 838_112.0),
-    ("OGP+ 400", 525.0, 1_050_000.0),
+OGVPLUS_DEFAULT_EUR_NOK = 11.69
+OGVPLUS_OPTIONS_EUR = [
+    ("OGV+ 80", 105.0, 385_490.0),
+    ("OGV+ 105", 138.0, 411_250.0),
+    ("OGV+ 160", 210.0, 548_798.0),
+    ("OGV+ 270", 355.0, 838_112.0),
+    ("OGV+ 400", 525.0, 1_050_000.0),
 ]
 
 
 # -----------------------------
 # App
 # -----------------------------
-st.set_page_config(page_title="O2 TCO – OGP vs OGP+", layout="wide")
+st.set_page_config(page_title="O2 TCO – OGV vs OGV+", layout="wide")
 
-st.title("O2 TCO-kalkulator – OGP vs OGP+")
+st.title("O2 TCO-kalkulator – OGV vs OGV+")
 st.caption(
     "Beslutningsstøtte for oppdrett (typisk behov 500–1200 kg/h). "
     "Sammenligner CAPEX og OPEX for landstrøm og dieseldrift."
@@ -266,35 +266,35 @@ with st.sidebar:
 
     st.divider()
     st.subheader("Teknologiantagelser")
-    spec_ogp = st.number_input("OGP spesifikk energibruk (kWh/kg O₂)", min_value=0.0, value=DEFAULTS["spec_kwh_per_kg_ogp"], step=0.01)
-    spec_ogpplus = st.number_input("OGP+ spesifikk energibruk (kWh/kg O₂)", min_value=0.0, value=DEFAULTS["spec_kwh_per_kg_ogpplus"], step=0.01)
+    spec_ogv = st.number_input("OGV spesifikk energibruk (kWh/kg O₂)", min_value=0.0, value=DEFAULTS["spec_kwh_per_kg_ogv"], step=0.01)
+    spec_ogvplus = st.number_input("OGV+ spesifikk energibruk (kWh/kg O₂)", min_value=0.0, value=DEFAULTS["spec_kwh_per_kg_ogvplus"], step=0.01)
 
     maint_pct = st.number_input("Årlig vedlikehold (% av CAPEX)", min_value=0.0, max_value=20.0, value=DEFAULTS["maint_pct_default"] * 100, step=0.5) / 100.0
 
     st.divider()
-    st.subheader("CAPEX – OGP")
-    ogp_capacity = st.number_input("Kapasitet pr OGP-modul (kg/h)", min_value=10.0, value=OGP_O2_CAPACITY_PER_MODULE, step=10.0)
+    st.subheader("CAPEX – OGV")
+    ogv_capacity = st.number_input("Kapasitet pr OGV-modul (kg/h)", min_value=10.0, value=OGV_O2_CAPACITY_PER_MODULE, step=10.0)
 
-    ogp_capex_generator = st.number_input("OGP: CAPEX generator pr modul (NOK)", min_value=0.0, value=OGP_CAPEX_GENERATOR_PER_MODULE, step=50_000.0)
-    ogp_capex_bop = st.number_input("OGP: CAPEX støtteutstyr pr modul (NOK)", min_value=0.0, value=OGP_CAPEX_BOP_PER_MODULE, step=50_000.0)
+    ogv_capex_generator = st.number_input("OGV: CAPEX generator pr modul (NOK)", min_value=0.0, value=OGV_CAPEX_GENERATOR_PER_MODULE, step=50_000.0)
+    ogv_capex_bop = st.number_input("OGV: CAPEX støtteutstyr pr modul (NOK)", min_value=0.0, value=OGV_CAPEX_BOP_PER_MODULE, step=50_000.0)
 
     st.divider()
-    st.subheader("CAPEX – OGP+ (modulbibliotek)")
-    eur_nok = st.number_input("EUR/NOK for OGP+ prisgrunnlag", min_value=0.0, value=OGPPLUS_DEFAULT_EUR_NOK, step=0.05)
+    st.subheader("CAPEX – OGV+ (modulbibliotek)")
+    eur_nok = st.number_input("EUR/NOK for OGV+ prisgrunnlag", min_value=0.0, value=OGVPLUS_DEFAULT_EUR_NOK, step=0.05)
 
-    # Redigerbar tabell for OGP+ moduler
-    ogpplus_df = pd.DataFrame(
+    # Redigerbar tabell for OGV+ moduler
+    ogvplus_df = pd.DataFrame(
         [{
             "Modul": name,
             "Kapasitet (kg/h)": cap,
             "Pris (EUR)": eur,
-        } for (name, cap, eur) in OGPPLUS_OPTIONS_EUR]
+        } for (name, cap, eur) in OGVPLUS_OPTIONS_EUR]
     )
-    ogpplus_df["Pris (NOK)"] = ogpplus_df["Pris (EUR)"] * eur_nok
+    ogvplus_df["Pris (NOK)"] = ogvplus_df["Pris (EUR)"] * eur_nok
 
-    st.caption("Her kan du justere kapasitet og CAPEX pr modul for OGP+.")
-    ogpplus_df_edit = st.data_editor(
-        ogpplus_df[["Modul", "Kapasitet (kg/h)", "Pris (NOK)"]],
+    st.caption("Her kan du justere kapasitet og CAPEX pr modul for OGV+.")
+    ogvplus_df_edit = st.data_editor(
+        ogvplus_df[["Modul", "Kapasitet (kg/h)", "Pris (NOK)"]],
         hide_index=True,
         use_container_width=True,
         column_config={
@@ -314,64 +314,64 @@ annual_o2_kg_per_site = demand * hours_per_year
 annual_o2_kg_fleet = annual_o2_kg_per_site * fleet_n
 
 # Energi
-annual_kwh_ogp_site = annual_o2_kg_per_site * spec_ogp
-annual_kwh_ogpplus_site = annual_o2_kg_per_site * spec_ogpplus
+annual_kwh_ogv_site = annual_o2_kg_per_site * spec_ogv
+annual_kwh_ogvplus_site = annual_o2_kg_per_site * spec_ogvplus
 
 diesel_cost_per_kwh = diesel_price * genset_l_per_kwh
 
-annual_energy_cost_ogp_land_site = annual_kwh_ogp_site * power_price
-annual_energy_cost_ogp_diesel_site = annual_kwh_ogp_site * diesel_cost_per_kwh
+annual_energy_cost_ogv_land_site = annual_kwh_ogv_site * power_price
+annual_energy_cost_ogv_diesel_site = annual_kwh_ogv_site * diesel_cost_per_kwh
 
-annual_energy_cost_ogpplus_land_site = annual_kwh_ogpplus_site * power_price
-annual_energy_cost_ogpplus_diesel_site = annual_kwh_ogpplus_site * diesel_cost_per_kwh
+annual_energy_cost_ogvplus_land_site = annual_kwh_ogvplus_site * power_price
+annual_energy_cost_ogvplus_diesel_site = annual_kwh_ogvplus_site * diesel_cost_per_kwh
 
-# OGP CAPEX (moduler)
-ogp_modules_needed = ceil_div(demand, ogp_capacity)
-ogp_installed_capacity = ogp_modules_needed * ogp_capacity
-ogp_capex_per_module_complete = ogp_capex_generator + ogp_capex_bop
-ogp_capex_site = ogp_modules_needed * ogp_capex_per_module_complete
+# OGV CAPEX (moduler)
+ogv_modules_needed = ceil_div(demand, ogv_capacity)
+ogv_installed_capacity = ogv_modules_needed * ogv_capacity
+ogv_capex_per_module_complete = ogv_capex_generator + ogv_capex_bop
+ogv_capex_site = ogv_modules_needed * ogv_capex_per_module_complete
 
-# OGP+ CAPEX (optimal kombinasjon)
-ogpplus_options = []
-for _, row in ogpplus_df_edit.iterrows():
+# OGV+ CAPEX (optimal kombinasjon)
+ogvplus_options = []
+for _, row in ogvplus_df_edit.iterrows():
     name = str(row["Modul"])
     cap = float(row["Kapasitet (kg/h)"])
     price = float(row["Pris (NOK)"])
     if cap > 0 and price >= 0:
-        ogpplus_options.append(ModuleOption(name=name, capacity_kgph=cap, capex_nok=price))
+        ogvplus_options.append(ModuleOption(name=name, capacity_kgph=cap, capex_nok=price))
 
-ogpplus_counts, ogpplus_installed_capacity, ogpplus_capex_site = best_combo_min_capex(demand, ogpplus_options, oversize_limit_factor=1.6)
+ogvplus_counts, ogvplus_installed_capacity, ogvplus_capex_site = best_combo_min_capex(demand, ogvplus_options, oversize_limit_factor=1.6)
 
 # Vedlikehold
-annual_maint_ogp_site = ogp_capex_site * maint_pct
-annual_maint_ogpplus_site = ogpplus_capex_site * maint_pct
+annual_maint_ogv_site = ogv_capex_site * maint_pct
+annual_maint_ogvplus_site = ogvplus_capex_site * maint_pct
 
 # Total OPEX per scenario
-annual_opex_ogp_land_site = annual_energy_cost_ogp_land_site + annual_maint_ogp_site
-annual_opex_ogp_diesel_site = annual_energy_cost_ogp_diesel_site + annual_maint_ogp_site
+annual_opex_ogv_land_site = annual_energy_cost_ogv_land_site + annual_maint_ogv_site
+annual_opex_ogv_diesel_site = annual_energy_cost_ogv_diesel_site + annual_maint_ogv_site
 
-annual_opex_ogpplus_land_site = annual_energy_cost_ogpplus_land_site + annual_maint_ogpplus_site
-annual_opex_ogpplus_diesel_site = annual_energy_cost_ogpplus_diesel_site + annual_maint_ogpplus_site
+annual_opex_ogvplus_land_site = annual_energy_cost_ogvplus_land_site + annual_maint_ogvplus_site
+annual_opex_ogvplus_diesel_site = annual_energy_cost_ogvplus_diesel_site + annual_maint_ogvplus_site
 
 # Skaler til flåte
-ogp_capex_fleet = ogp_capex_site * fleet_n
-ogpplus_capex_fleet = ogpplus_capex_site * fleet_n
+ogv_capex_fleet = ogv_capex_site * fleet_n
+ogvplus_capex_fleet = ogvplus_capex_site * fleet_n
 
-annual_opex_ogp_land_fleet = annual_opex_ogp_land_site * fleet_n
-annual_opex_ogp_diesel_fleet = annual_opex_ogp_diesel_site * fleet_n
-annual_opex_ogpplus_land_fleet = annual_opex_ogpplus_land_site * fleet_n
-annual_opex_ogpplus_diesel_fleet = annual_opex_ogpplus_diesel_site * fleet_n
+annual_opex_ogv_land_fleet = annual_opex_ogv_land_site * fleet_n
+annual_opex_ogv_diesel_fleet = annual_opex_ogv_diesel_site * fleet_n
+annual_opex_ogvplus_land_fleet = annual_opex_ogvplus_land_site * fleet_n
+annual_opex_ogvplus_diesel_fleet = annual_opex_ogvplus_diesel_site * fleet_n
 
 # NPV
-npv_ogp_land = ogp_capex_fleet + npv_of_annuity(annual_opex_ogp_land_fleet, years, discount_rate)
-npv_ogp_diesel = ogp_capex_fleet + npv_of_annuity(annual_opex_ogp_diesel_fleet, years, discount_rate)
+npv_ogv_land = ogv_capex_fleet + npv_of_annuity(annual_opex_ogv_land_fleet, years, discount_rate)
+npv_ogv_diesel = ogv_capex_fleet + npv_of_annuity(annual_opex_ogv_diesel_fleet, years, discount_rate)
 
-npv_ogpplus_land = ogpplus_capex_fleet + npv_of_annuity(annual_opex_ogpplus_land_fleet, years, discount_rate)
-npv_ogpplus_diesel = ogpplus_capex_fleet + npv_of_annuity(annual_opex_ogpplus_diesel_fleet, years, discount_rate)
+npv_ogvplus_land = ogvplus_capex_fleet + npv_of_annuity(annual_opex_ogvplus_land_fleet, years, discount_rate)
+npv_ogvplus_diesel = ogvplus_capex_fleet + npv_of_annuity(annual_opex_ogvplus_diesel_fleet, years, discount_rate)
 
 # Payback (diesel som default scenario)
-delta_capex = ogpplus_capex_fleet - ogp_capex_fleet
-delta_annual_opex_diesel = annual_opex_ogp_diesel_fleet - annual_opex_ogpplus_diesel_fleet  # positiv => OGP+ sparer penger årlig
+delta_capex = ogvplus_capex_fleet - ogv_capex_fleet
+delta_annual_opex_diesel = annual_opex_ogv_diesel_fleet - annual_opex_ogvplus_diesel_fleet  # positiv => OGV+ sparer penger årlig
 payback_years = None
 if delta_capex > 0 and delta_annual_opex_diesel > 0:
     payback_years = delta_capex / delta_annual_opex_diesel
@@ -387,16 +387,16 @@ with col1:
 
     dim_rows = [
         {
-            "Teknologi": "OGP",
-            "Moduler": ogp_modules_needed,
-            "Installert kapasitet (kg/h)": ogp_installed_capacity,
-            "CAPEX per lokasjon (NOK)": ogp_capex_site,
+            "Teknologi": "OGV",
+            "Moduler": ogv_modules_needed,
+            "Installert kapasitet (kg/h)": ogv_installed_capacity,
+            "CAPEX per lokasjon (NOK)": ogv_capex_site,
         },
         {
-            "Teknologi": "OGP+",
-            "Moduler": ", ".join([f"{k}×{v}" for k, v in ogpplus_counts.items()]) if ogpplus_counts else "—",
-            "Installert kapasitet (kg/h)": ogpplus_installed_capacity,
-            "CAPEX per lokasjon (NOK)": ogpplus_capex_site,
+            "Teknologi": "OGV+",
+            "Moduler": ", ".join([f"{k}×{v}" for k, v in ogvplus_counts.items()]) if ogvplus_counts else "—",
+            "Installert kapasitet (kg/h)": ogvplus_installed_capacity,
+            "CAPEX per lokasjon (NOK)": ogvplus_capex_site,
         },
     ]
     dim_df = pd.DataFrame(dim_rows)
@@ -411,13 +411,13 @@ with col1:
     )
 
     st.subheader("Energibehov per lokasjon")
-    power_ogp_kw = demand * spec_ogp
-    power_ogpplus_kw = demand * spec_ogpplus
+    power_ogv_kw = demand * spec_ogv
+    power_ogvplus_kw = demand * spec_ogvplus
 
     energy_df = pd.DataFrame(
         [
-            {"Teknologi": "OGP", "Snitt effekt (kW)": power_ogp_kw, "Årlig energi (kWh)": annual_kwh_ogp_site},
-            {"Teknologi": "OGP+", "Snitt effekt (kW)": power_ogpplus_kw, "Årlig energi (kWh)": annual_kwh_ogpplus_site},
+            {"Teknologi": "OGV", "Snitt effekt (kW)": power_ogv_kw, "Årlig energi (kWh)": annual_kwh_ogv_site},
+            {"Teknologi": "OGV+", "Snitt effekt (kW)": power_ogvplus_kw, "Årlig energi (kWh)": annual_kwh_ogvplus_site},
         ]
     )
     st.dataframe(
@@ -436,20 +436,20 @@ with col2:
 
     summary_rows = [
         {
-            "Teknologi": "OGP",
-            "CAPEX (NOK)": ogp_capex_fleet,
-            "Årlig OPEX (land) (NOK/år)": annual_opex_ogp_land_fleet,
-            "Årlig OPEX (diesel) (NOK/år)": annual_opex_ogp_diesel_fleet,
-            "NPV land (NOK)": npv_ogp_land,
-            "NPV diesel (NOK)": npv_ogp_diesel,
+            "Teknologi": "OGV",
+            "CAPEX (NOK)": ogv_capex_fleet,
+            "Årlig OPEX (land) (NOK/år)": annual_opex_ogv_land_fleet,
+            "Årlig OPEX (diesel) (NOK/år)": annual_opex_ogv_diesel_fleet,
+            "NPV land (NOK)": npv_ogv_land,
+            "NPV diesel (NOK)": npv_ogv_diesel,
         },
         {
-            "Teknologi": "OGP+",
-            "CAPEX (NOK)": ogpplus_capex_fleet,
-            "Årlig OPEX (land) (NOK/år)": annual_opex_ogpplus_land_fleet,
-            "Årlig OPEX (diesel) (NOK/år)": annual_opex_ogpplus_diesel_fleet,
-            "NPV land (NOK)": npv_ogpplus_land,
-            "NPV diesel (NOK)": npv_ogpplus_diesel,
+            "Teknologi": "OGV+",
+            "CAPEX (NOK)": ogvplus_capex_fleet,
+            "Årlig OPEX (land) (NOK/år)": annual_opex_ogvplus_land_fleet,
+            "Årlig OPEX (diesel) (NOK/år)": annual_opex_ogvplus_diesel_fleet,
+            "NPV land (NOK)": npv_ogvplus_land,
+            "NPV diesel (NOK)": npv_ogvplus_diesel,
         },
     ]
     summary_df = pd.DataFrame(summary_rows)
@@ -463,11 +463,11 @@ with col2:
     st.subheader("Diesel-scenario (mest sannsynlig)")
     if payback_years is None:
         st.info(
-            "Payback er ikke beregnet (enten er OGP+ ikke dyrere i CAPEX, "
-            "eller så gir ikke OGP+ lavere årlig OPEX i diesel-scenarioet med dine inndata)."
+            "Payback er ikke beregnet (enten er OGV+ ikke dyrere i CAPEX, "
+            "eller så gir ikke OGV+ lavere årlig OPEX i diesel-scenarioet med dine inndata)."
         )
     else:
-        st.success(f"Estimert **payback** for OGP+ vs OGP (diesel): **{fmt_num(payback_years, 1)} år**")
+        st.success(f"Estimert **payback** for OGV+ vs OGV (diesel): **{fmt_num(payback_years, 1)} år**")
 
     st.caption(
         "Dieselkost pr kWh er beregnet som: dieselpris × liter/kWh. "
@@ -480,52 +480,52 @@ st.subheader("Kumulativ kostnad over tid")
 tab1, tab2 = st.tabs(["Diesel", "Landstrøm"])
 
 with tab1:
-    df_ogp = build_cashflow_table(years, ogp_capex_fleet, annual_opex_ogp_diesel_fleet, discount_rate)
-    df_ogpplus = build_cashflow_table(years, ogpplus_capex_fleet, annual_opex_ogpplus_diesel_fleet, discount_rate)
+    df_ogv = build_cashflow_table(years, ogv_capex_fleet, annual_opex_ogv_diesel_fleet, discount_rate)
+    df_ogvplus = build_cashflow_table(years, ogvplus_capex_fleet, annual_opex_ogvplus_diesel_fleet, discount_rate)
 
     chart_df = pd.DataFrame({
-        "År": df_ogp["År"],
-        "OGP akk. kost (NOK)": df_ogp["Akk. kostnad (NOK)"],
-        "OGP+ akk. kost (NOK)": df_ogpplus["Akk. kostnad (NOK)"],
+        "År": df_ogv["År"],
+        "OGV akk. kost (NOK)": df_ogv["Akk. kostnad (NOK)"],
+        "OGV+ akk. kost (NOK)": df_ogvplus["Akk. kostnad (NOK)"],
     }).set_index("År")
     st.line_chart(chart_df, use_container_width=True)
 
     chart_df_npv = pd.DataFrame({
-        "År": df_ogp["År"],
-        "OGP akk. nåverdi (NOK)": df_ogp["Akk. nåverdi (NOK)"],
-        "OGP+ akk. nåverdi (NOK)": df_ogpplus["Akk. nåverdi (NOK)"],
+        "År": df_ogv["År"],
+        "OGV akk. nåverdi (NOK)": df_ogv["Akk. nåverdi (NOK)"],
+        "OGV+ akk. nåverdi (NOK)": df_ogvplus["Akk. nåverdi (NOK)"],
     }).set_index("År")
     st.line_chart(chart_df_npv, use_container_width=True)
 
     with st.expander("Se cashflow-tabeller (diesel)"):
-        st.write("**OGP**")
-        st.dataframe(df_ogp, use_container_width=True, hide_index=True)
-        st.write("**OGP+**")
-        st.dataframe(df_ogpplus, use_container_width=True, hide_index=True)
+        st.write("**OGV**")
+        st.dataframe(df_ogv, use_container_width=True, hide_index=True)
+        st.write("**OGV+**")
+        st.dataframe(df_ogvplus, use_container_width=True, hide_index=True)
 
 with tab2:
-    df_ogp = build_cashflow_table(years, ogp_capex_fleet, annual_opex_ogp_land_fleet, discount_rate)
-    df_ogpplus = build_cashflow_table(years, ogpplus_capex_fleet, annual_opex_ogpplus_land_fleet, discount_rate)
+    df_ogv = build_cashflow_table(years, ogv_capex_fleet, annual_opex_ogv_land_fleet, discount_rate)
+    df_ogvplus = build_cashflow_table(years, ogvplus_capex_fleet, annual_opex_ogvplus_land_fleet, discount_rate)
 
     chart_df = pd.DataFrame({
-        "År": df_ogp["År"],
-        "OGP akk. kost (NOK)": df_ogp["Akk. kostnad (NOK)"],
-        "OGP+ akk. kost (NOK)": df_ogpplus["Akk. kostnad (NOK)"],
+        "År": df_ogv["År"],
+        "OGV akk. kost (NOK)": df_ogv["Akk. kostnad (NOK)"],
+        "OGV+ akk. kost (NOK)": df_ogvplus["Akk. kostnad (NOK)"],
     }).set_index("År")
     st.line_chart(chart_df, use_container_width=True)
 
     chart_df_npv = pd.DataFrame({
-        "År": df_ogp["År"],
-        "OGP akk. nåverdi (NOK)": df_ogp["Akk. nåverdi (NOK)"],
-        "OGP+ akk. nåverdi (NOK)": df_ogpplus["Akk. nåverdi (NOK)"],
+        "År": df_ogv["År"],
+        "OGV akk. nåverdi (NOK)": df_ogv["Akk. nåverdi (NOK)"],
+        "OGV+ akk. nåverdi (NOK)": df_ogvplus["Akk. nåverdi (NOK)"],
     }).set_index("År")
     st.line_chart(chart_df_npv, use_container_width=True)
 
     with st.expander("Se cashflow-tabeller (landstrøm)"):
-        st.write("**OGP**")
-        st.dataframe(df_ogp, use_container_width=True, hide_index=True)
-        st.write("**OGP+**")
-        st.dataframe(df_ogpplus, use_container_width=True, hide_index=True)
+        st.write("**OGV**")
+        st.dataframe(df_ogv, use_container_width=True, hide_index=True)
+        st.write("**OGV+**")
+        st.dataframe(df_ogvplus, use_container_width=True, hide_index=True)
 
 st.divider()
 st.subheader("Eksport")
@@ -540,16 +540,16 @@ export = {
     "diesel_price_nok_per_l": diesel_price,
     "genset_l_per_kwh": genset_l_per_kwh,
     "diesel_cost_per_kwh": diesel_cost_per_kwh,
-    "spec_kwh_per_kg_ogp": spec_ogp,
-    "spec_kwh_per_kg_ogpplus": spec_ogpplus,
-    "ogp_modules_needed_per_site": ogp_modules_needed,
-    "ogp_capex_per_site": ogp_capex_site,
-    "ogpplus_combo_per_site": ogpplus_counts,
-    "ogpplus_capex_per_site": ogpplus_capex_site,
-    "npv_ogp_diesel_fleet": npv_ogp_diesel,
-    "npv_ogpplus_diesel_fleet": npv_ogpplus_diesel,
-    "npv_ogp_land_fleet": npv_ogp_land,
-    "npv_ogpplus_land_fleet": npv_ogpplus_land,
+    "spec_kwh_per_kg_ogv": spec_ogv,
+    "spec_kwh_per_kg_ogvplus": spec_ogvplus,
+    "ogv_modules_needed_per_site": ogv_modules_needed,
+    "ogv_capex_per_site": ogv_capex_site,
+    "ogvplus_combo_per_site": ogvplus_counts,
+    "ogvplus_capex_per_site": ogvplus_capex_site,
+    "npv_ogv_diesel_fleet": npv_ogv_diesel,
+    "npv_ogvplus_diesel_fleet": npv_ogvplus_diesel,
+    "npv_ogv_land_fleet": npv_ogv_land,
+    "npv_ogvplus_land_fleet": npv_ogvplus_land,
 }
 
 export_df = pd.DataFrame([export])
