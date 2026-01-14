@@ -1,8 +1,8 @@
-# O2 TCO – OGV vs OGV+
+# O2 TCO – OGP vs OGV+
 
 Dette er en enkel Streamlit-app for å sammenligne total eierkost (TCO) for to alternativer:
 
-- **OGV** (PSA): 0,90 kWh/kg O₂ (brukerforutsetning)
+- **OGP** (PSA): 0,90 kWh/kg O₂ (brukerforutsetning)
 - **OGV+** (VPSA): 0,39 kWh/kg O₂ (brukerforutsetning)
 
 Appen er laget for oppdrettscase med typisk behov **500–1200 kg/h per lokasjon** og kan skaleres til flåte.
